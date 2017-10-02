@@ -41,7 +41,7 @@ local function Package(self, Position, Success, Error, ...)
 			end
 		end
 	end
-	return {self, Position, Success, Error, ...}
+	return Position, {Success, Error, ...}
 end
 
 -- Define default Attempt properties
@@ -63,14 +63,14 @@ local function Try(Function, ...)
 		LastArguments = {...};
 	}, Attempt)
 
-	local PreviousRetryCount, Results = 0
+	local PreviousRetryCount, Position = 0
 
 	Bindable.Event:Connect(function(ErrorPosition)
 		-- Resume Thread and Cache results
 		if ErrorPosition then
-			Results = Package(self, ErrorPosition, pcall(self[ErrorPosition + 1], unpack(self.LastArguments)))
+			Position, self.Results = Package(self, ErrorPosition, pcall(self[ErrorPosition + 1], unpack(self.LastArguments)))
 		else
-			Results = Package(unpack(Results))
+			Position, self.Results = Package(self, Position, unpack(self.Results))
 		end
 
 		-- Don't resolve thread if `Retry` was initiated
